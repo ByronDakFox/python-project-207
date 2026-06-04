@@ -10,6 +10,7 @@ from flask import (
 from dotenv import load_dotenv
 from urllib.parse import urlparse
 from datetime import datetime
+
 import validators
 import psycopg2
 import os
@@ -21,7 +22,6 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 DATABASE_URL = os.getenv('DATABASE_URL')
-#conn = psycopg2.connect(DATABASE_URL)
 
 
 def get_connection():
@@ -36,54 +36,48 @@ def index():
 @app.post('/urls')
 def create_url():
 
-    url = request.form.get('url')
+    url = request.form.get('url', '').strip()
 
-    errors=[]
+    errors = {}
 
     if not validators.url(url):
-        errors.append('URL inválida')
+        errors['url'] = 'URL inválida'
 
     if len(url) > 255:
-        errors.append(
-            'Debe tener menos de 255 caracteres'
-        )
+        errors['url'] = 'Debe contener menos de 255 caracteres'
 
     if errors:
-
-        for error in errors:
-            flash(error,'danger')
-
+        flash('URL inválida', 'danger')
         return render_template(
             'index.html',
-            url=url
-        ),422
+            url=url,
+            errors=errors
+        ), 422
 
-    parsed_url=urlparse(url)
+    parsed = urlparse(url)
 
-    normalized=(
-        f'{parsed_url.scheme}://'
-        f'{parsed_url.netloc}'
+    normalized_url = (
+        f'{parsed.scheme}://{parsed.netloc}'
     )
 
-    conn=get_connection()
-
-    cur=conn.cursor()
+    conn = get_connection()
+    cur = conn.cursor()
 
     cur.execute(
         "SELECT id FROM urls WHERE name=%s",
-        (normalized,)
+        (normalized_url,)
     )
 
-    existing=cur.fetchone()
+    existing = cur.fetchone()
 
     if existing:
 
-        flash(
-            'La URL ya existe',
-            'warning'
-        )
-
         conn.close()
+
+        flash(
+            'La página ya existe',
+            'info'
+        )
 
         return redirect(
             url_for(
@@ -95,24 +89,23 @@ def create_url():
     cur.execute(
         """
         INSERT INTO urls
-        (name,created_at)
-        VALUES(%s,%s)
+        (name, created_at)
+        VALUES (%s, %s)
         RETURNING id
         """,
         (
-            normalized,
+            normalized_url,
             datetime.now()
         )
     )
 
-    url_id=cur.fetchone()[0]
+    url_id = cur.fetchone()[0]
 
     conn.commit()
-
     conn.close()
 
     flash(
-        'URL agregada correctamente',
+        'Página agregada correctamente',
         'success'
     )
 
@@ -127,9 +120,8 @@ def create_url():
 @app.route('/urls')
 def urls():
 
-    conn=get_connection()
-
-    cur=conn.cursor()
+    conn = get_connection()
+    cur = conn.cursor()
 
     cur.execute(
         """
@@ -139,7 +131,7 @@ def urls():
         """
     )
 
-    urls=cur.fetchall()
+    urls = cur.fetchall()
 
     conn.close()
 
@@ -152,16 +144,15 @@ def urls():
 @app.route('/urls/<int:id>')
 def show_url(id):
 
-    conn=get_connection()
-
-    cur=conn.cursor()
+    conn = get_connection()
+    cur = conn.cursor()
 
     cur.execute(
         "SELECT * FROM urls WHERE id=%s",
         (id,)
     )
 
-    url=cur.fetchone()
+    url = cur.fetchone()
 
     conn.close()
 
