@@ -11,8 +11,8 @@ from dotenv import load_dotenv
 from urllib.parse import urlparse
 from datetime import datetime
 
-import validators
 import psycopg2
+import validators
 import os
 
 load_dotenv()
@@ -28,7 +28,7 @@ def get_connection():
     return psycopg2.connect(DATABASE_URL)
 
 
-@app.route('/')
+@app.get('/')
 def index():
     return render_template('index.html')
 
@@ -48,6 +48,7 @@ def create_url():
 
     if errors:
         flash('URL inválida', 'danger')
+
         return render_template(
             'index.html',
             url=url,
@@ -64,14 +65,13 @@ def create_url():
     cur = conn.cursor()
 
     cur.execute(
-        "SELECT id FROM urls WHERE name=%s",
+        'SELECT id FROM urls WHERE name = %s',
         (normalized_url,)
     )
 
     existing = cur.fetchone()
 
     if existing:
-
         conn.close()
 
         flash(
@@ -87,12 +87,12 @@ def create_url():
         )
 
     cur.execute(
-        """
+        '''
         INSERT INTO urls
         (name, created_at)
         VALUES (%s, %s)
         RETURNING id
-        """,
+        ''',
         (
             normalized_url,
             datetime.now()
@@ -117,18 +117,25 @@ def create_url():
     )
 
 
-@app.route('/urls')
+@app.get('/urls')
 def urls():
 
     conn = get_connection()
     cur = conn.cursor()
 
     cur.execute(
-        """
-        SELECT *
+        '''
+        SELECT
+            urls.id,
+            urls.name,
+            MAX(url_checks.created_at),
+            urls.created_at
         FROM urls
-        ORDER BY id DESC
-        """
+        LEFT JOIN url_checks
+        ON urls.id = url_checks.url_id
+        GROUP BY urls.id
+        ORDER BY urls.id DESC
+        '''
     )
 
     urls = cur.fetchall()
@@ -141,22 +148,69 @@ def urls():
     )
 
 
-@app.route('/urls/<int:id>')
+@app.get('/urls/<int:id>')
 def show_url(id):
 
     conn = get_connection()
     cur = conn.cursor()
 
     cur.execute(
-        "SELECT * FROM urls WHERE id=%s",
+        'SELECT * FROM urls WHERE id = %s',
         (id,)
     )
 
     url = cur.fetchone()
 
+    cur.execute(
+        '''
+        SELECT *
+        FROM url_checks
+        WHERE url_id = %s
+        ORDER BY id DESC
+        ''',
+        (id,)
+    )
+
+    checks = cur.fetchall()
+
     conn.close()
 
     return render_template(
         'url.html',
-        url=url
+        url=url,
+        checks=checks
+    )
+
+
+@app.post('/urls/<int:id>/checks')
+def create_check(id):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        '''
+        INSERT INTO url_checks
+        (url_id, created_at)
+        VALUES (%s, %s)
+        ''',
+        (
+            id,
+            datetime.now()
+        )
+    )
+
+    conn.commit()
+    conn.close()
+
+    flash(
+        'Página revisada correctamente',
+        'success'
+    )
+
+    return redirect(
+        url_for(
+            'show_url',
+            id=id
+        )
     )
