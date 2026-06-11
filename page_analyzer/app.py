@@ -1,3 +1,12 @@
+import os
+from datetime import datetime
+from urllib.parse import urlparse
+
+import psycopg2
+import validators
+
+from dotenv import load_dotenv
+
 from flask import (
     Flask,
     render_template,
@@ -6,14 +15,6 @@ from flask import (
     url_for,
     flash
 )
-
-from dotenv import load_dotenv
-from urllib.parse import urlparse
-from datetime import datetime
-
-import psycopg2
-import validators
-import os
 
 load_dotenv()
 
@@ -40,14 +41,20 @@ def create_url():
 
     errors = {}
 
-    if not validators.url(url):
+    if not url:
+        errors['url'] = 'URL requerida'
+
+    elif not validators.url(url):
         errors['url'] = 'URL inválida'
 
-    if len(url) > 255:
-        errors['url'] = 'Debe contener menos de 255 caracteres'
+    elif len(url) > 255:
+        errors['url'] = 'La URL supera los 255 caracteres'
 
     if errors:
-        flash('URL inválida', 'danger')
+        flash(
+            list(errors.values())[0],
+            'danger'
+        )
 
         return render_template(
             'index.html',
@@ -65,13 +72,18 @@ def create_url():
     cur = conn.cursor()
 
     cur.execute(
-        'SELECT id FROM urls WHERE name = %s',
+        '''
+        SELECT id
+        FROM urls
+        WHERE name=%s
+        ''',
         (normalized_url,)
     )
 
-    existing = cur.fetchone()
+    existing_url = cur.fetchone()
 
-    if existing:
+    if existing_url:
+
         conn.close()
 
         flash(
@@ -82,7 +94,7 @@ def create_url():
         return redirect(
             url_for(
                 'show_url',
-                id=existing[0]
+                id=existing_url[0]
             )
         )
 
@@ -138,13 +150,13 @@ def urls():
         '''
     )
 
-    urls = cur.fetchall()
+    urls_list = cur.fetchall()
 
     conn.close()
 
     return render_template(
         'urls.html',
-        urls=urls
+        urls=urls_list
     )
 
 
@@ -155,7 +167,11 @@ def show_url(id):
     cur = conn.cursor()
 
     cur.execute(
-        'SELECT * FROM urls WHERE id = %s',
+        '''
+        SELECT *
+        FROM urls
+        WHERE id=%s
+        ''',
         (id,)
     )
 
@@ -165,7 +181,7 @@ def show_url(id):
         '''
         SELECT *
         FROM url_checks
-        WHERE url_id = %s
+        WHERE url_id=%s
         ORDER BY id DESC
         ''',
         (id,)
@@ -191,8 +207,15 @@ def create_check(id):
     cur.execute(
         '''
         INSERT INTO url_checks
-        (url_id, created_at)
-        VALUES (%s, %s)
+        (
+            url_id,
+            created_at
+        )
+        VALUES
+        (
+            %s,
+            %s
+        )
         ''',
         (
             id,

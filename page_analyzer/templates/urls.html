@@ -1,45 +1,34 @@
-<!doctype html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
+{% extends 'base.html' %} {% block content %}
 
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
+<h1>URLs</h1>
 
-    <title>URLs</title>
-  </head>
+<table class="table table-bordered" data-test="urls">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Última revisión</th>
+      <th>Creado</th>
+    </tr>
+  </thead>
 
-  <body>
-    <div class="container mt-5">
-      <h1>URLs</h1>
+  <tbody>
+    {% for url in urls %}
 
-      <table class="table table-bordered" data-test="urls">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Fecha</th>
-          </tr>
-        </thead>
+    <tr>
+      <td>{{ url[0] }}</td>
 
-        <tbody>
-          {% for url in urls %}
+      <td>
+        <a href="{{ url_for('show_url', id=url[0]) }}"> {{ url[1] }} </a>
+      </td>
 
-          <tr>
-            <td>{{ url[0] }}</td>
+      <td>{{ url[2] or '' }}</td>
 
-            <td>
-              <a href="{{ url_for('show_url', id=url[0]) }}"> {{ url[1] }} </a>
-            </td>
+      <td>{{ url[3] }}</td>
+    </tr>
 
-            <td>{{ url[2] }}</td>
-          </tr>
+    {% endfor %}
+  </tbody>
+</table>
 
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </body>
-</html>
+{% endblock %}
