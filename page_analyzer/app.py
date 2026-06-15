@@ -13,14 +13,18 @@ from flask import (
     request,
     redirect,
     url_for,
-    flash
+    flash,
+    abort
 )
 
 load_dotenv()
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SECRET_KEY'] = os.getenv(
+    'SECRET_KEY',
+    'secret-key'
+)
 
 DATABASE_URL = os.getenv('DATABASE_URL')
 
@@ -29,7 +33,7 @@ def get_connection():
     return psycopg2.connect(DATABASE_URL)
 
 
-@app.get('/')
+@app.route('/')
 def index():
     return render_template('index.html')
 
@@ -48,9 +52,10 @@ def create_url():
         errors['url'] = 'URL inválida'
 
     elif len(url) > 255:
-        errors['url'] = 'La URL supera los 255 caracteres'
+        errors['url'] = 'La URL excede los 255 caracteres'
 
     if errors:
+
         flash(
             list(errors.values())[0],
             'danger'
@@ -69,32 +74,33 @@ def create_url():
     )
 
     conn = get_connection()
+
     cur = conn.cursor()
 
     cur.execute(
         '''
         SELECT id
         FROM urls
-        WHERE name=%s
+        WHERE name = %s
         ''',
         (normalized_url,)
     )
 
-    existing_url = cur.fetchone()
+    existing = cur.fetchone()
 
-    if existing_url:
-
-        conn.close()
+    if existing:
 
         flash(
             'La página ya existe',
             'info'
         )
 
+        conn.close()
+
         return redirect(
             url_for(
                 'show_url',
-                id=existing_url[0]
+                id=existing[0]
             )
         )
 
@@ -114,6 +120,8 @@ def create_url():
     url_id = cur.fetchone()[0]
 
     conn.commit()
+
+    cur.close()
     conn.close()
 
     flash(
@@ -133,6 +141,7 @@ def create_url():
 def urls():
 
     conn = get_connection()
+
     cur = conn.cursor()
 
     cur.execute(
@@ -140,18 +149,23 @@ def urls():
         SELECT
             urls.id,
             urls.name,
-            MAX(url_checks.created_at),
+            MAX(url_checks.created_at) AS last_check,
             urls.created_at
+
         FROM urls
+
         LEFT JOIN url_checks
-        ON urls.id = url_checks.url_id
+            ON urls.id = url_checks.url_id
+
         GROUP BY urls.id
+
         ORDER BY urls.id DESC
         '''
     )
 
     urls_list = cur.fetchall()
 
+    cur.close()
     conn.close()
 
     return render_template(
@@ -164,24 +178,28 @@ def urls():
 def show_url(id):
 
     conn = get_connection()
+
     cur = conn.cursor()
 
     cur.execute(
         '''
         SELECT *
         FROM urls
-        WHERE id=%s
+        WHERE id = %s
         ''',
         (id,)
     )
 
     url = cur.fetchone()
 
+    if not url:
+        abort(404)
+
     cur.execute(
         '''
         SELECT *
         FROM url_checks
-        WHERE url_id=%s
+        WHERE url_id = %s
         ORDER BY id DESC
         ''',
         (id,)
@@ -189,6 +207,7 @@ def show_url(id):
 
     checks = cur.fetchall()
 
+    cur.close()
     conn.close()
 
     return render_template(
@@ -202,6 +221,7 @@ def show_url(id):
 def create_check(id):
 
     conn = get_connection()
+
     cur = conn.cursor()
 
     cur.execute(
@@ -224,6 +244,8 @@ def create_check(id):
     )
 
     conn.commit()
+
+    cur.close()
     conn.close()
 
     flash(

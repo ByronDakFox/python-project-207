@@ -1,56 +1,89 @@
-{% extends 'base.html' %} {% block content %}
+{% extends 'base.html' %}
 
-<h1>Información del sitio</h1>
+{% block content %}
 
-<table class="table" data-test="url">
-  <tr>
-    <th>ID</th>
-    <td>{{ url[0] }}</td>
-  </tr>
+<h1 class="mb-4">
+    Información del sitio
+</h1>
 
-  <tr>
-    <th>Nombre</th>
-    <td>{{ url[1] }}</td>
-  </tr>
+<table
+    class="table"
+    data-test="url">
 
-  <tr>
-    <th>Fecha</th>
-    <td>{{ url[2] }}</td>
-  </tr>
+    <tr>
+        <th>ID</th>
+        <td>{{ url[0] }}</td>
+    </tr>
+
+    <tr>
+        <th>Nombre</th>
+        <td>{{ url[1] }}</td>
+    </tr>
+
+    <tr>
+        <th>Fecha creación</th>
+        <td>{{ url[2] }}</td>
+    </tr>
+
 </table>
 
-<form action="{{ url_for('create_check', id=url[0]) }}" method="post">
-  <button type="submit" class="btn btn-primary">Ejecutar revisión</button>
+<form
+    action="{{ url_for('create_check', id=url[0]) }}"
+    method="post">
+
+    <button
+        type="submit"
+        class="btn btn-primary">
+
+        Ejecutar revisión
+
+    </button>
+
 </form>
 
-<h2 class="mt-5">Revisiones</h2>
+<h2 class="mt-5">
+    Revisiones
+</h2>
 
-<table class="table table-bordered" data-test="checks">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Status</th>
-      <th>H1</th>
-      <th>Title</th>
-      <th>Description</th>
-      <th>Fecha</th>
-    </tr>
-  </thead>
+<table
+    class="table table-bordered"
+    data-test="checks">
 
-  <tbody>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Status Code</th>
+            <th>H1</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Fecha</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
     {% for check in checks %}
 
-    <tr>
-      <td>{{ check[0] }}</td>
-      <td>{{ check[2] or '' }}</td>
-      <td>{{ check[3] or '' }}</td>
-      <td>{{ check[4] or '' }}</td>
-      <td>{{ check[5] or '' }}</td>
-      <td>{{ check[6] }}</td>
-    </tr>
+        <tr>
+
+            <td>{{ check[0] }}</td>
+
+            <td>{{ check[2] or '' }}</td>
+
+            <td>{{ check[3] or '' }}</td>
+
+            <td>{{ check[4] or '' }}</td>
+
+            <td>{{ check[5] or '' }}</td>
+
+            <td>{{ check[6] }}</td>
+
+        </tr>
 
     {% endfor %}
-  </tbody>
+
+    </tbody>
+
 </table>
 
 {% endblock %}
