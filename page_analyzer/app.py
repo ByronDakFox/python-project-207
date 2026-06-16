@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 
 import psycopg2
 import validators
+import requests
 
 from dotenv import load_dotenv
 
@@ -33,7 +34,7 @@ def get_connection():
     return psycopg2.connect(DATABASE_URL)
 
 
-@app.route('/')
+@app.get('/')
 def index():
     return render_template('index.html')
 
@@ -48,11 +49,11 @@ def create_url():
     if not url:
         errors['url'] = 'URL requerida'
 
+    elif len(url) > 255:
+        errors['url'] = 'URL debe contener menos de 255 caracteres'
+
     elif not validators.url(url):
         errors['url'] = 'URL inválida'
-
-    elif len(url) > 255:
-        errors['url'] = 'La URL excede los 255 caracteres'
 
     if errors:
 
@@ -74,7 +75,6 @@ def create_url():
     )
 
     conn = get_connection()
-
     cur = conn.cursor()
 
     cur.execute(
@@ -86,29 +86,37 @@ def create_url():
         (normalized_url,)
     )
 
-    existing = cur.fetchone()
+    existing_url = cur.fetchone()
 
-    if existing:
+    if existing_url:
 
         flash(
             'La página ya existe',
             'info'
         )
 
+        cur.close()
         conn.close()
 
         return redirect(
             url_for(
                 'show_url',
-                id=existing[0]
+                id=existing_url[0]
             )
         )
 
     cur.execute(
         '''
         INSERT INTO urls
-        (name, created_at)
-        VALUES (%s, %s)
+        (
+            name,
+            created_at
+        )
+        VALUES
+        (
+            %s,
+            %s
+        )
         RETURNING id
         ''',
         (
@@ -141,7 +149,6 @@ def create_url():
 def urls():
 
     conn = get_connection()
-
     cur = conn.cursor()
 
     cur.execute(
@@ -178,7 +185,6 @@ def urls():
 def show_url(id):
 
     conn = get_connection()
-
     cur = conn.cursor()
 
     cur.execute(
@@ -221,37 +227,74 @@ def show_url(id):
 def create_check(id):
 
     conn = get_connection()
-
     cur = conn.cursor()
 
-    cur.execute(
-        '''
-        INSERT INTO url_checks
-        (
-            url_id,
-            created_at
+    try:
+        # Buscar la URL
+        cur.execute(
+            '''
+            SELECT id, name
+            FROM urls
+            WHERE id = %s
+            ''',
+            (id,)
         )
-        VALUES
-        (
-            %s,
-            %s
+
+        url = cur.fetchone()
+
+        if not url:
+            flash('URL no encontrada', 'danger')
+            return redirect(url_for('urls'))
+
+        # Realizar la petición HTTP
+        response = requests.get(
+            url[1],
+            timeout=10
         )
-        ''',
-        (
-            id,
-            datetime.now()
+
+        # Lanzar excepción si hay error HTTP
+        response.raise_for_status()
+
+        # Guardar status_code
+        cur.execute(
+            '''
+            INSERT INTO url_checks
+            (
+                url_id,
+                status_code,
+                created_at
+            )
+            VALUES
+            (
+                %s,
+                %s,
+                %s
+            )
+            ''',
+            (
+                id,
+                response.status_code,
+                datetime.now()
+            )
         )
-    )
 
-    conn.commit()
+        conn.commit()
 
-    cur.close()
-    conn.close()
+        flash(
+            'Página revisada correctamente',
+            'success'
+        )
 
-    flash(
-        'Página revisada correctamente',
-        'success'
-    )
+    except requests.RequestException:
+
+        flash(
+            'Ocurrió un error al hacer la verificación',
+            'danger'
+        )
+
+    finally:
+        cur.close()
+        conn.close()
 
     return redirect(
         url_for(

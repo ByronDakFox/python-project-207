@@ -2,9 +2,7 @@
 
 {% block content %}
 
-<h1>
-    Sitios
-</h1>
+<h1>URLs</h1>
 
 <table
     class="table table-bordered"
@@ -15,11 +13,8 @@
         <tr>
 
             <th>ID</th>
-
             <th>Nombre</th>
-
             <th>Última revisión</th>
-
             <th>Fecha creación</th>
 
         </tr>
@@ -35,11 +30,9 @@
             <td>{{ url[0] }}</td>
 
             <td>
-
                 <a href="{{ url_for('show_url', id=url[0]) }}">
                     {{ url[1] }}
                 </a>
-
             </td>
 
             <td>

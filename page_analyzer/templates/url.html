@@ -2,13 +2,9 @@
 
 {% block content %}
 
-<h1 class="mb-4">
-    Información del sitio
-</h1>
+<h1>Información del sitio</h1>
 
-<table
-    class="table"
-    data-test="url">
+<table class="table" data-test="url">
 
     <tr>
         <th>ID</th>
@@ -50,19 +46,23 @@
     data-test="checks">
 
     <thead>
+
         <tr>
+
             <th>ID</th>
             <th>Status Code</th>
             <th>H1</th>
             <th>Title</th>
             <th>Description</th>
             <th>Fecha</th>
+
         </tr>
+
     </thead>
 
     <tbody>
 
-    {% for check in checks %}
+        {% for check in checks %}
 
         <tr>
 
@@ -80,7 +80,7 @@
 
         </tr>
 
-    {% endfor %}
+        {% endfor %}
 
     </tbody>
 
