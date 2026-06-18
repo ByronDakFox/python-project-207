@@ -6,6 +6,7 @@ import psycopg2
 import validators
 import requests
 
+from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
 from flask import (
@@ -56,7 +57,6 @@ def create_url():
         errors['url'] = 'URL inválida'
 
     if errors:
-
         flash(
             list(errors.values())[0],
             'danger'
@@ -230,7 +230,7 @@ def create_check(id):
     cur = conn.cursor()
 
     try:
-        # Buscar la URL
+
         cur.execute(
             '''
             SELECT id, name
@@ -243,29 +243,69 @@ def create_check(id):
         url = cur.fetchone()
 
         if not url:
-            flash('URL no encontrada', 'danger')
-            return redirect(url_for('urls'))
 
-        # Realizar la petición HTTP
+            flash(
+                'URL no encontrada',
+                'danger'
+            )
+
+            return redirect(
+                url_for('urls')
+            )
+
         response = requests.get(
             url[1],
             timeout=10
         )
 
-        # Lanzar excepción si hay error HTTP
         response.raise_for_status()
 
-        # Guardar status_code
+        soup = BeautifulSoup(
+            response.text,
+            'html.parser'
+        )
+
+        h1 = ''
+
+        h1_tag = soup.find('h1')
+
+        if h1_tag:
+            h1 = h1_tag.get_text(strip=True)
+
+        title = ''
+
+        if soup.title:
+            title = soup.title.get_text(strip=True)
+
+        description = ''
+
+        description_tag = soup.find(
+            'meta',
+            attrs={'name': 'description'}
+        )
+
+        if description_tag:
+            description = description_tag.get(
+                'content',
+                ''
+            )
+
         cur.execute(
             '''
             INSERT INTO url_checks
             (
                 url_id,
                 status_code,
+                h1,
+                title,
+                description,
                 created_at
             )
             VALUES
             (
+                %s,
+                %s,
+                %s,
                 %s,
                 %s,
                 %s
@@ -274,6 +314,9 @@ def create_check(id):
             (
                 id,
                 response.status_code,
+                h1,
+                title,
+                description,
                 datetime.now()
             )
         )
@@ -285,14 +328,16 @@ def create_check(id):
             'success'
         )
 
-    except requests.RequestException:
-
+    except Exception as e:
+        print(f'ERROR: {e}')
+        
         flash(
-            'Ocurrió un error al hacer la verificación',
-            'danger'
+        f'Error: {e}',
+        'danger'
         )
-
+    
     finally:
+
         cur.close()
         conn.close()
 
