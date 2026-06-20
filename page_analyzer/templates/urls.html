@@ -9,8 +9,8 @@
         <tr>
             <th>ID</th>
             <th>Nombre</th>
-            <th>Status Code</th>
             <th>Última revisión</th>
+            <th>Status Code</th>
         </tr>
     </thead>
 
@@ -25,9 +25,9 @@
                 </a>
             </td>
 
-            <td>{{ url[2] or '' }}</td>
-
             <td>{{ url[3] or '' }}</td>
+
+            <td>{{ url[2] or '' }}</td>
         </tr>
         {% endfor %}
     </tbody>
