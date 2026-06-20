@@ -152,23 +152,25 @@ def urls():
     cur = conn.cursor()
 
     cur.execute(
-        '''
-        SELECT
-            urls.id,
-            urls.name,
-            MAX(url_checks.created_at) AS last_check,
-            urls.created_at
-
-        FROM urls
-
-        LEFT JOIN url_checks
-            ON urls.id = url_checks.url_id
-
-        GROUP BY urls.id
-
-        ORDER BY urls.id DESC
-        '''
-    )
+    '''
+    SELECT
+        urls.id,
+        urls.name,
+        url_checks.status_code,
+        url_checks.created_at
+    FROM urls
+    LEFT JOIN (
+        SELECT DISTINCT ON (url_id)
+            url_id,
+            status_code,
+            created_at
+        FROM url_checks
+        ORDER BY url_id, created_at DESC
+    ) AS url_checks
+        ON urls.id = url_checks.url_id
+    ORDER BY urls.id DESC
+    '''
+)
 
     urls_list = cur.fetchall()
 

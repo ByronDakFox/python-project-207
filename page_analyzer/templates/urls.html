@@ -1,54 +1,32 @@
-{% extends 'base.html' %}
-
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 
 <h1>URLs</h1>
 
-<table
-    class="table table-bordered"
-    data-test="urls">
+<table class="table" data-test="urls">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Última revisión</th>
+      <th>Status Code</th>
+    </tr>
+  </thead>
 
-    <thead>
-
-        <tr>
-
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Última revisión</th>
-            <th>Fecha creación</th>
-
-        </tr>
-
-    </thead>
-
-    <tbody>
-
+  <tbody>
     {% for url in urls %}
+    <tr>
+      <td>{{ url[0] }}</td>
 
-        <tr>
+      <td>
+        <a href="{{ url_for('show_url', id=url[0]) }}"> {{ url[1] }} </a>
+      </td>
 
-            <td>{{ url[0] }}</td>
+      <td>{{ url[3] or '' }}</td>
 
-            <td>
-                <a href="{{ url_for('show_url', id=url[0]) }}">
-                    {{ url[1] }}
-                </a>
-            </td>
-
-            <td>
-                {{ url[2] or '' }}
-            </td>
-
-            <td>
-                {{ url[3] }}
-            </td>
-
-        </tr>
-
+      <td>{{ url[2] or '' }}</td>
+    </tr>
     {% endfor %}
-
-    </tbody>
-
+  </tbody>
 </table>
 
 {% endblock %}
