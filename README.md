@@ -369,10 +369,10 @@ La aplicación controla:
 
 # 👨‍💻 Autor
 
-**Code Zero**
+**Byron Ramirez**
 
-- GitHub: https://github.com/TU_USUARIO
-- LinkedIn: https://linkedin.com/in/TU_PERFIL
+- GitHub: https://github.com/ByronDakFox
+- LinkedIn: https://www.linkedin.com/in/byronramirez95/
 
 ---
 
