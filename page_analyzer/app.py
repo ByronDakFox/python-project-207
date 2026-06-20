@@ -331,7 +331,7 @@ def create_check(id):
         conn.commit()
 
         flash(
-            'Página revisada correctamente',
+            'La página fue verificada correctamente',
             'success'
         )
 
