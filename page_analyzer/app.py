@@ -230,7 +230,6 @@ def create_check(id):
     cur = conn.cursor()
 
     try:
-
         cur.execute(
             '''
             SELECT id, name
@@ -243,22 +242,13 @@ def create_check(id):
         url = cur.fetchone()
 
         if not url:
-
-            flash(
-                'URL no encontrada',
-                'danger'
-            )
-
-            return redirect(
-                url_for('urls')
-            )
+            flash('URL no encontrada', 'danger')
+            return redirect(url_for('urls'))
 
         response = requests.get(
             url[1],
             timeout=10
         )
-
-        response.raise_for_status()
 
         soup = BeautifulSoup(
             response.text,
@@ -266,19 +256,15 @@ def create_check(id):
         )
 
         h1 = ''
-
         h1_tag = soup.find('h1')
-
         if h1_tag:
             h1 = h1_tag.get_text(strip=True)
 
         title = ''
-
         if soup.title:
             title = soup.title.get_text(strip=True)
 
         description = ''
-
         description_tag = soup.find(
             'meta',
             attrs={'name': 'description'}
@@ -289,6 +275,10 @@ def create_check(id):
                 'content',
                 ''
             )
+
+        h1 = h1[:255]
+        title = title[:255]
+        description = description[:255]
 
         cur.execute(
             '''
@@ -328,16 +318,13 @@ def create_check(id):
             'success'
         )
 
-    except Exception as e:
-        print(f'ERROR: {e}')
-        
+    except requests.RequestException:
         flash(
-        f'Error: {e}',
-        'danger'
+            'Ocurrió un error al hacer la verificación',
+            'danger'
         )
-    
-    finally:
 
+    finally:
         cur.close()
         conn.close()
 
