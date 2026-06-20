@@ -133,7 +133,7 @@ def create_url():
     conn.close()
 
     flash(
-        'Página agregada correctamente',
+        'La página se agregó correctamente',
         'success'
     )
 
