@@ -321,7 +321,7 @@ def create_check(id):
 
     except requests.RequestException:
         flash(
-            'Ocurrió un error al hacer la verificación',
+            'Ocurrió un error durante la verificación',
             'danger'
         )
 
