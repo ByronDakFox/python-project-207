@@ -48,7 +48,7 @@ def create_url():
 
     if not url:
         errors['url'] = 'URL requerida'
-    elif len(url) > 255:
+    elif len(url) > 50:
         errors['url'] = 'URL debe contener menos de 255 caracteres'
     elif not validators.url(url):
         errors['url'] = 'URL inválida'
