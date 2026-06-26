@@ -30,8 +30,8 @@ def get_connection():
 
 
 def truncate(text):
-    if text and len(text) > 300:
-        return text[:292] + '...'
+    if text and len(text) > 50:
+        return text[:47] + '...'
     return text
 
 
@@ -48,8 +48,8 @@ def create_url():
 
     if not url:
         errors['url'] = 'URL requerida'
-    elif len(url) > 300:
-        errors['url'] = 'URL debe contener menos de 300 caracteres'
+    elif len(url) > 255:
+        errors['url'] = 'URL debe contener menos de 255 caracteres'
     elif not validators.url(url):
         errors['url'] = 'URL inválida'
 
