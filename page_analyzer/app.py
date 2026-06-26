@@ -30,8 +30,8 @@ def get_connection():
 
 
 def truncate(text):
-    if text and len(text) > 255:
-        return text[:252] + '...'
+    if text and len(text) > 300:
+        return text[:292] + '...'
     return text
 
 
