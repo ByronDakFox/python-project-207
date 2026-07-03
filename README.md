@@ -1,5 +1,7 @@
 ### Hexlet tests and linter status:
 [![Actions Status](https://github.com/ByronDakFox/python-project-207/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/ByronDakFox/python-project-207/actions)
+[![Maintainability](https://qlty.sh/gh/ByronDakFox/projects/python-project-174/maintainability.svg)](https://qlty.sh/gh/ByronDakFox/projects/python-project-174)
+[![Code Coverage](https://qlty.sh/gh/ByronDakFox/projects/python-project-174/coverage.svg)](https://qlty.sh/gh/ByronDakFox/projects/python-project-174)
 
 # 🔍 Page Analyzer
 
@@ -8,6 +10,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5-purple.svg)](https://getbootstrap.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 
 Aplicación web desarrollada con **Flask** y **PostgreSQL** para analizar páginas web y verificar algunos elementos importantes para el SEO, como:
 
